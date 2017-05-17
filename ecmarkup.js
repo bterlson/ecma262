@@ -189,7 +189,7 @@ Search.prototype.displayResults = function (results) {
       } else if (entry.type === 'op') {
         text = entry.key;
         cssClass = 'op';
-        id = entry.id || entry.refId;
+        id = entry.refId;
       } else if (entry.type === 'term') {
         text = entry.key;
         cssClass = 'term';
@@ -265,7 +265,7 @@ function Menu() {
                     && target.offsetHeight + target.scrollTop >= target.scrollHeight;
 
     if (offBottom) {
-		  e.preventDefault();
+		  event.preventDefault();
 	  }
   })
 }
@@ -642,7 +642,7 @@ var Toolbox = {
     document.body.appendChild(this.$container);
   },
 
-  activate: function (el, entry, target) {
+  activate: function (el, entry) {
     if (el === this._activeEl) return;
     this.active = true;
     this.entry = entry;
@@ -653,8 +653,7 @@ var Toolbox = {
     this.updatePermalink();
     this.updateReferences();
     this._activeEl = el;
-    if (this.top < document.body.scrollTop && el === target) {
-      // don't scroll unless it's a small thing (< 200px)
+    if (this.top < document.body.scrollTop) {
       this.$container.scrollIntoView();
     }
   },
@@ -669,9 +668,9 @@ var Toolbox = {
 
   activateIfMouseOver: function (e) {
     var ref = this.findReferenceUnder(e.target);
-    if (ref && (!this.active || e.pageY > this._activeEl.offsetTop)) {
+    if (ref) {
       var entry = menu.search.biblio.byId[ref.id];
-      this.activate(ref.element, entry, e.target);
+      this.activate(ref.element, entry);
     } else if (this.active && ((e.pageY < this.top) || e.pageY > (this._activeEl.offsetTop + this._activeEl.offsetHeight))) {
       this.deactivate();
     }
@@ -687,9 +686,6 @@ var Toolbox = {
         if (el.nodeName === 'EMU-FIGURE' || el.nodeName === 'EMU-TABLE' || el.nodeName === 'EMU-EXAMPLE') {
           // return the figcaption element
           return { element: el.children[0].children[0], id: el.id };
-        } else if (el.nodeName === 'EMU-PRODUCTION') {
-          // return the LHS non-terminal element
-          return { element: el.children[0], id: el.id };
         } else {
           return { element: el, id: el.id };
         }
@@ -723,7 +719,7 @@ var referencePane = {
     this.$header = document.createElement('div');
     this.$header.classList.add('menu-pane-header');
     this.$header.textContent = 'References to ';
-    this.$headerRefId = document.createElement('a');
+    this.$headerRefId = document.createElement('span');
     this.$header.appendChild(this.$headerRefId);
     this.$closeButton = document.createElement('span');
     this.$closeButton.setAttribute('id', 'references-pane-close');
@@ -762,7 +758,6 @@ var referencePane = {
     var previousCell;
     var dupCount = 0;
     this.$headerRefId.textContent = '#' + entry.id;
-    this.$headerRefId.setAttribute('href', '#' + entry.id);
     entry.referencingIds.map(function (id) {
       var target = document.getElementById(id);
       var cid = findParentClauseId(target);
